@@ -1,24 +1,42 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
+import { Stack, useRouter, useSegments } from 'expo-router';
+import { useEffect } from 'react';
 import 'react-native-reanimated';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+function NavigationGuard() {
+  const {token,isLoadingSession}=useAuth()
+  const segments = useSegments()
+  const router = useRouter()
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+  useEffect(() => {
+    if(isLoadingSession) return
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+    const inProtectedScreen = segments[0] === "(protected)"
+
+    if(token){
+      if(!inProtectedScreen){
+        router.replace("/(protected)/dashboard")
+      }
+    }else{
+      if(inProtectedScreen){
+        router.replace("/")
+      }
+    }
+  }, [token,isLoadingSession,segments])
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack screenOptions={{headerShown:false}}>
+      <Stack.Screen name='(public)/index'/>
+      <Stack.Screen name='(public)/register'/>
+      <Stack.Screen name='(protected)'/>
+    </Stack>
+
+  );
+}
+export default function RootLayout(){
+  return (
+    <AuthProvider>
+      <NavigationGuard/>
+    </AuthProvider>
   );
 }
