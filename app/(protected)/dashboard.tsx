@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions } from "@react-navigation/native";
-import { useNavigation } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import Drawer from "expo-router/drawer";
 import { StyleSheet, Text, TouchableOpacity, Image, TextInput, FlatList, View, Dimensions } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -69,6 +69,7 @@ const MOCK_PRODUCTS_LIST: Product[] = [
 
 export default function DashboardScreen() {
     const navigation = useNavigation()
+    const router = useRouter()
     const { profile } = useDrawer()
     const [selectedCategory, setSelectedCategory] = useState("All Products")
     const [searchQuery, setSearchQuery] = useState("")
@@ -97,7 +98,9 @@ export default function DashboardScreen() {
                     <Ionicons name="menu-outline" size={30} color="#005C3A" />
                 </TouchableOpacity>
                 <Text style={styles.logoText}>ShopEase</Text>
-                <TouchableOpacity style={styles.profileContainer}>
+                <TouchableOpacity style={styles.profileContainer}
+                    onPress={() => router.push("/(protected)/profile")}
+                >
                     <Image
                         source={{ uri: profile.avatarUrl }}
                         style={styles.avatarImage}
