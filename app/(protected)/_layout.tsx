@@ -4,9 +4,13 @@ import { TouchableOpacity, Text, Image, StyleSheet, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useDrawer } from "../src/admin/viewmodels/use-drawer";
 import { useAuth } from "../src/context/AuthContext";
+import { useRouter } from "expo-router";
+import { useState } from "react";
 export default function ProtectedLayout() {
     const { profile, navigationOptions } = useDrawer()
-    const{clearSession}=useAuth()
+    const { clearSession } = useAuth()
+    const router = useRouter()
+    const [isInventoryExpanded, setIsInventoryExpanded] = useState(false)
     return (
         <GestureHandlerRootView>
             <Drawer screenOptions={{
@@ -42,33 +46,82 @@ export default function ProtectedLayout() {
                                 {navigationOptions.map((option) => {
 
                                     const isSelected = activeRouteName === option.name;
-
+                                    const hasSubitems = !!option.subitems
                                     return (
-                                        <TouchableOpacity
-                                            key={option.name}
-                                            style={[
-                                                styles.menuItemList,
-                                                isSelected && styles.menuItemSelected
-                                            ]}
-                                        >
 
-                                            <Feather
-                                                name={option.icon as any}
-                                                size={20}
-                                                color={isSelected ? "#FFF" : "#374151"}
-                                                style={styles.menuIcon}
-                                            />
-
-                                            <Text
+                                        <View key={option.name}>
+                                            <TouchableOpacity
                                                 style={[
-                                                    styles.menuText,
-                                                    isSelected && styles.menuTextSelected
+                                                    styles.menuItemList,
+                                                    isSelected && styles.menuItemSelected
                                                 ]}
-                                            >
-                                                {option.label}
-                                            </Text>
+                                                onPress={() => {
 
-                                        </TouchableOpacity>
+                                                    if (hasSubitems) {
+                                                        setIsInventoryExpanded(!isInventoryExpanded)
+                                                    } else {
+                                                        router.push(`/(protected)/${option.name}` as any)
+                                                    }
+                                                }}
+                                            >
+
+                                                <Feather
+                                                    name={option.icon as any}
+                                                    size={20}
+                                                    color={isSelected ? "#FFF" : "#374151"}
+                                                    style={styles.menuIcon}
+                                                />
+
+                                                <Text
+                                                    style={[
+                                                        styles.menuText,
+                                                        isSelected && styles.menuTextSelected
+                                                    ]}
+                                                >
+                                                    {option.label}
+                                                </Text>
+
+                                                {hasSubitems && (
+                                                    <Feather
+                                                        name={isInventoryExpanded ? "chevron-up" : "chevron-down"}
+
+                                                        size={16}
+                                                        style={{ marginLeft: "auto" }}
+
+                                                    />
+                                                )}
+
+                                            </TouchableOpacity>
+
+                                            {hasSubitems && isInventoryExpanded && option.subitems?.map((sub) => {
+                                                const isSubSelected = activeRouteName === sub.name
+                                                return (
+                                                    <TouchableOpacity
+                                                        key={sub.name}
+
+                                                        style={[
+                                                            styles.menuItemList,
+                                                            { paddingLeft: 40 },
+                                                            isSubSelected && styles.menuItemSelected
+                                                        ]}
+                                                        onPress={() => router.push(`/(protected)/${sub.name}` as any)}
+                                                    >
+                                                        <Feather
+                                                            name={sub.icon as any}
+                                                            size={16}
+                                                            color={isSubSelected ? "#FFF" : "#4B5563"}
+                                                            style={styles.menuIcon}
+                                                        />
+                                                        <Text style={[styles.menuText, {fontSize:14}, isSubSelected && styles.menuTextSelected]}>
+                                                            {sub.label}
+                                                        </Text>
+                                                    </TouchableOpacity>
+                                                )
+                                            })}
+
+                                        </View>
+
+
                                     );
                                 })}
                             </View>
@@ -84,11 +137,11 @@ export default function ProtectedLayout() {
 
                             </TouchableOpacity>
                         </View>
-                    )
-                }}
+    )
+}}
             />
 
-        </GestureHandlerRootView>
+        </GestureHandlerRootView >
     );
 }
 
