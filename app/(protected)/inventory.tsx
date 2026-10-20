@@ -1,12 +1,62 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import Drawer from "expo-router/drawer";
-import { KeyboardAvoidingView, Platform, StyleSheet, TouchableOpacity, Text, View, ScrollView, TextInput } from "react-native";
+import { KeyboardAvoidingView, Platform, StyleSheet, TouchableOpacity, Text, View, ScrollView, TextInput, Alert, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useAuth } from "../src/context/AuthContext";
+import { useState } from "react";
+import { CategoryService } from "../src/categories/services/category.services";
 
 export default function InventoryScreen() {
 
     const router = useRouter()
+    const { token } = useAuth()
+    const [name, setName] = useState("")
+    const [description, setDescription] = useState("")
+    const [isLoading, setIsLoading] = useState(false)
+
+    const handleSaveCategory = async () => {
+        if (!name.trim()) {
+            Alert.alert(
+                "Campo requerido",
+                "Por favor ingrese el nombre de la categoria"
+            );
+            return;
+        }
+        if (!description.trim()) {
+            Alert.alert("Campo requerido", "Por favor ingrese la descripcion");
+            return;
+        }
+        if (!token) {
+            Alert.alert("Error de sesion", "No se encontro el token");
+            return;
+        }
+        setIsLoading(true);
+
+        try {
+            const newCategory = await CategoryService.createCategory(name, description, token);
+
+            Alert.alert(
+                "Categoria Creada",
+                `La categoria "${newCategory.name}" se guardo exitosamente`,
+                [
+                    {
+                        text: "Aceptar",
+                        onPress: () => {
+                            setName("");
+                            setDescription("");
+                            router.replace("/(protected)/dashboard");
+                        }
+                    }
+                ]
+            );
+        } catch (error: any) {
+            Alert.alert("Error", error.message || "Error al crear la categoria");
+
+        } finally {
+            setIsLoading(false);
+        }
+    };
     return (
         <SafeAreaView style={styles.container}>
             <Drawer.Screen options={{ headerShown: false }} />
@@ -38,6 +88,9 @@ export default function InventoryScreen() {
                             <TextInput
                                 placeholder="Ej. Dulceria"
                                 style={styles.textInput}
+                                value={name}
+                                onChangeText={setName}
+                                editable={!isLoading}
                             />
                         </View>
 
@@ -47,6 +100,9 @@ export default function InventoryScreen() {
                             <TextInput
                                 placeholder="Describe los productos que engloban esta categoria"
                                 multiline
+                                value={description}
+                                onChangeText={setDescription}
+                                editable={!isLoading}
                                 numberOfLines={5}
                                 textAlignVertical="top"
                                 style={styles.textAreaInput}
@@ -54,9 +110,24 @@ export default function InventoryScreen() {
                         </View>
 
 
-                        <TouchableOpacity style={styles.btnSave}>
-                            <Ionicons style={styles.checkIcon} name="checkmark-outline" size={22} color="#FFF" />
-                            <Text style={styles.btnSaveText}>Guardar Categoria</Text>
+                        <TouchableOpacity
+                            onPress={handleSaveCategory}
+                            disabled={isLoading}
+                            style={styles.btnSave}
+                        >
+                            {isLoading ? (
+                                <ActivityIndicator color="#FFF" size="small" />
+                            ) : (
+                                <>
+                                    <Ionicons
+                                        style={styles.checkIcon}
+                                        name="checkmark-outline"
+                                        size={22}
+                                        color="#FFF"
+                                    />
+                                    <Text style={styles.btnSaveText}>Guardar Categoria</Text>
+                                </>
+                            )}
                         </TouchableOpacity>
 
 

@@ -2,10 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions } from "@react-navigation/native";
 import { useNavigation, useRouter } from "expo-router";
 import Drawer from "expo-router/drawer";
-import { StyleSheet, Text, TouchableOpacity, Image, TextInput, FlatList, View, Dimensions } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, Image, TextInput, FlatList, View, Dimensions, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDrawer } from "../src/admin/viewmodels/use-drawer";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "../src/context/AuthContext";
+import { CategoryService } from "../src/categories/services/category.services";
 
 const { width } = Dimensions.get('window')
 const CARD_WIDTH = (width - 44) / 2 //(Ancho total - meagenes laterales )/2
@@ -20,7 +22,6 @@ interface Product {
     category: string
 }
 
-const CATEGORIES = ["All categories", "Electronics", "Fashions", "VideoGames"]
 
 const MOCK_PRODUCTS_LIST: Product[] = [
     {
@@ -71,8 +72,29 @@ export default function DashboardScreen() {
     const navigation = useNavigation()
     const router = useRouter()
     const { profile } = useDrawer()
+    const { token } = useAuth()
     const [selectedCategory, setSelectedCategory] = useState("All Products")
     const [searchQuery, setSearchQuery] = useState("")
+    const [categories, setCategories] = useState<string[]>(["All categories"])
+    //const [selectedCategory, setSelectedCategory] = useState("All categories")
+    const [isLoadingCategories, setIsLoadingCategories] = useState(false)
+    useEffect(() => {
+        const fetchCategories = async () => {
+            if (!token) return
+            setIsLoadingCategories(true)
+            try {
+                const data = await CategoryService.getCategories(token)
+                const categoryNames = Array.from(new Set(data.map((c) => c.name)))
+                setCategories(["All categories", ...categoryNames])
+            } catch (error) {
+                console.log("Error to get categories from screen", error);
+            } finally {
+                setIsLoadingCategories(false)
+            }
+        }
+        fetchCategories()
+    }, [token])
+
     const openMenu = () => {
         navigation.dispatch(DrawerActions.openDrawer())
     }
@@ -119,34 +141,40 @@ export default function DashboardScreen() {
 
             {/**categorias */}
             <View style={styles.categoriesWrapper}>
-                <FlatList
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    data={CATEGORIES}
-                    contentContainerStyle={styles.categoriesList}
-                    keyExtractor={(item) => item}
+                {isLoadingCategories ? (
+                    <ActivityIndicator color="#005C3A" size="small" />
+                ) : (
+                    <FlatList
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        data={categories}
+                        contentContainerStyle={styles.categoriesList}
+                        keyExtractor={(item) => item}
 
-                    renderItem={({ item }) => {
-                        const isSelected = item === selectedCategory
-                        return (
-                            <TouchableOpacity
-                                onPress={() => setSelectedCategory(item)}
-                                style={[
-                                    styles.categoryItem,
-                                    isSelected && styles.categoryItemSelected
-                                ]}
+                        renderItem={({ item }) => {
+                            const isSelected = item === selectedCategory
+                            return (
+                                <TouchableOpacity
+                                    onPress={() => setSelectedCategory(item)}
+                                    style={[
+                                        styles.categoryItem,
+                                        isSelected && styles.categoryItemSelected
+                                    ]}
 
-                            >
-                                <Text style={[
-                                    styles.categoryText,
-                                    isSelected && styles.categoryTextSelected
-                                ]}>
-                                    {item}</Text>
+                                >
+                                    <Text style={[
+                                        styles.categoryText,
+                                        isSelected && styles.categoryTextSelected
+                                    ]}>
+                                        {item}</Text>
 
-                            </TouchableOpacity>
-                        )
-                    }}
-                />
+                                </TouchableOpacity>
+                            )
+                        }}
+                    />
+
+                )}
+
             </View>
 
             <FlatList
@@ -175,7 +203,7 @@ export default function DashboardScreen() {
                             <View style={styles.priceRow}>
                                 <Text>${item.price.toFixed(2)}</Text>
                                 <TouchableOpacity style={styles.cartBtn}>
-                                    <Ionicons name="cart-outline" size={16} color="#FFF"/>
+                                    <Ionicons name="cart-outline" size={16} color="#FFF" />
                                 </TouchableOpacity>
                             </View>
                         </View>
@@ -318,7 +346,7 @@ const styles = StyleSheet.create({
         color: "#1F2937",
         marginBottom: 2
     },
-    productDescription:{
+    productDescription: {
         fontSize: 11,
         color: "#6B7280",
         marginBottom: 8
@@ -329,12 +357,12 @@ const styles = StyleSheet.create({
         justifyContent: "space-between"
     },
     cartBtn: {
-        backgroundColor:"#00B074",
+        backgroundColor: "#00B074",
         width: 30,
         height: 30,
-        justifyContent:"center",
+        justifyContent: "center",
         borderRadius: 15,
-        alignItems:"center"
+        alignItems: "center"
     },
 
 })
