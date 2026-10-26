@@ -1,9 +1,10 @@
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
-import { ProductService } from "../../services/product.services";
 import { useAuth } from "@/app/src/context/AuthContext";
+import { useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert } from "react-native";
-import { CategoryResponse, CategoryService } from "../../../categories/services/category.services";
+import { CategoryResponse, CategoryService } from "../../categories/services/category.services";
+import { ProductService } from "../services/product.services";
+import { ProductItem } from "../models/product.model";
 
 export function useCreateProduct() {
     const router = useRouter()
@@ -12,6 +13,8 @@ export function useCreateProduct() {
     const [name, setName] = useState("")
     const [categoryId, setCategoryId] = useState<null | number>(null)
     const [categories, setCategories] = useState<CategoryResponse[]>([])
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null)
+    const [products, setProducts] = useState<ProductItem[]>([])
     const [isLoadingCategories, setIsLoadingCategories] = useState(false)
     const [isCategoriesShowModal, setIsCategoriesShowModal] = useState(false)
     const [sku, setSku] = useState("")
@@ -23,12 +26,37 @@ export function useCreateProduct() {
     const [isLoadingProduct, setIsLoadingProduct] = useState(false)
     const [errorMessage, setErrorMessage] = useState<string | null>(null)
     const [selectedCategoryName, setSelectedCategoryName] = useState("")
+    const [searchQuery, setSearchQuery] = useState("")
 
     useEffect(() => {
         if (token) {
             fetchCategories()
         }
     }, [token])
+
+    const fetchProducts = useCallback(async () => {
+        if (!token) return
+        setIsLoadingProduct(true)
+        try {
+            if (selectedCategoryId === null) {
+                const data = await ProductService.getProductsByCategoryId(1, token)
+                setProducts(data)
+            }
+            else {
+                const data = await ProductService.getProductsByCategoryId(Number(selectedCategoryId), token)
+                setProducts(data)
+            }
+        } catch (error) {
+            console.log("error al traer los productos", error)
+            setProducts([])
+        } finally {
+            setIsLoadingProduct(false)
+        }
+    }, [token, selectedCategoryId])
+
+    useEffect(() => {
+        fetchProducts()
+    }, [fetchProducts])
 
     const fetchCategories = async () => {
         if (!token) return
@@ -56,6 +84,7 @@ export function useCreateProduct() {
 
         setErrorMessage(null)
         setIsLoadingProduct(true)
+
 
 
 
@@ -88,6 +117,20 @@ export function useCreateProduct() {
         }
 
     }
+
+
+
+    const filteredProducts = useMemo(() => {
+        return products.filter((p) => {
+            const query = searchQuery.toLowerCase().trim()
+            if (!query) return true
+            return (
+                p.name.toLowerCase().includes(query) ||
+                (p.description && p.description.toLowerCase().includes(query))
+            )
+        })
+    }, [products, searchQuery])
+
     return {
         name,
         setName,
@@ -113,7 +156,13 @@ export function useCreateProduct() {
         errorMessage,
         submitProduct,
         selectedCategoryName,
-        setSelectedCategoryName
+        setSelectedCategoryName,
+        products: filteredProducts,
+        searchQuery,
+        setSearchQuery,
+        refreshProducts: fetchProducts,
+        selectedCategoryId,
+        setSelectedCategoryId
     }
 
 }

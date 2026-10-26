@@ -1,10 +1,9 @@
+import { useCreateProduct } from "@/app/src/Products/viewmodels/use-create-product";
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import Drawer from "expo-router/drawer";
-import { useState } from "react";
 import { ActivityIndicator, FlatList, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useCreateProduct } from "@/app/src/Products/models/viewmodels/use-create-product";
 
 export default function CreateProductScreen() {
   const router = useRouter();

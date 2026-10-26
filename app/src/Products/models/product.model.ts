@@ -21,3 +21,17 @@ export interface CreateProductResponse{
     createdAt?: string
     updatedAt?: string
 }
+
+export interface ProductItem {
+  id: number
+  categoryId: number
+  categoryName?: string
+  name: string
+  description: string
+  regularPrice: number
+  offerPrice?: number
+  minStockAlert: number
+  imageUrl?: string
+  createdAt?: string
+  updatedAt?: string
+}
