@@ -45,6 +45,7 @@ export function useCreateProduct() {
             else {
                 const data = await ProductService.getProductsByCategoryId(Number(selectedCategoryId), token)
                 setProducts(data)
+
             }
         } catch (error) {
             console.log("error al traer los productos", error)

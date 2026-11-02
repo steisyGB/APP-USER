@@ -91,7 +91,7 @@ export const AuthService = {
             const authTokenHeader = token.startsWith("Bearer ") ? token : `Bearer ${token}`
             const response = await axios.put(`${API_URL}/users/upload/${userId}`, formData, {
                 headers: {
-                    "Authorization":authTokenHeader,
+                    "Authorization": authTokenHeader,
                     "Content-Type": "multipart/form-data"
                 }
             })
@@ -102,6 +102,22 @@ export const AuthService = {
                 throw new Error(error.response.data?.message || "Error to login")
             }
             throw new Error("Server error")
+        }
+    },
+
+    /**VALIDATE TOKEN */
+    validateToken: async (token: string): Promise<boolean> => {
+        try {
+            const header = token.startsWith("Bearer ") ? token : `Bearer ${token}`
+            const { data } = await axios.get(`${API_URL}/auth/validate`, {
+                headers: { Authorization: header },
+                timeout: 10000
+            })
+            return data.valid === true
+        } catch (error) {
+            console.log(error);
+            if (axios.isAxiosError(error) && error.response?.status === 401) return false
+            throw error
         }
     }
 }
