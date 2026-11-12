@@ -31,6 +31,7 @@ export interface ProductItem {
   regularPrice: number
   offerPrice?: number
   minStockAlert: number
+  initialStock?: number
   imageUrl?: string
   createdAt?: string
   updatedAt?: string

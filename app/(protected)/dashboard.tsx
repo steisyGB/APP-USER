@@ -1,17 +1,15 @@
+
 import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions } from "@react-navigation/native";
 import { useNavigation, useRouter } from "expo-router";
 import Drawer from "expo-router/drawer";
-import { StyleSheet, Text, TouchableOpacity, Image, TextInput, FlatList, View, Dimensions, ActivityIndicator } from "react-native";
+import { ActivityIndicator, Dimensions, FlatList, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useDrawer } from "../src/admin/viewmodels/use-drawer";
-import { useEffect, useMemo, useState } from "react";
-import { useAuth } from "../src/context/AuthContext";
-import { CategoryService } from "../src/categories/services/category.services";
 import { useCreateProduct } from "../src/Products/viewmodels/use-create-product";
 
 const { width } = Dimensions.get('window')
-const CARD_WIDTH = (width - 44) / 2 //(Ancho total - meagenes laterales )/2
+const CARD_WIDTH = (width - 44) / 2 //(Ancho total - margenes laterales )/2
 
 
 
@@ -109,11 +107,32 @@ export default function DashboardScreen() {
                 contentContainerStyle={styles.productList}
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => (
-                    <View style={styles.cardContainer}>
+
+                    // CAMBIO 1: TARJETA PRESIONABLE
+                    <TouchableOpacity
+                        style={styles.cardContainer}
+                        activeOpacity={0.8}
+                        onPress={() =>
+                            router.push({
+                                pathname: "/(protected)/product-detail",
+                                params: {
+                                    product: JSON.stringify({
+                                        ...item,
+                                        categoryName:
+                                            item.categoryName ||
+                                            categories.find(
+                                                category => category.id === item.categoryId
+                                            )?.name ||
+                                            "Productos"
+                                    })
+                                }
+                            })
+                        }
+                    >
                         <View style={styles.imageWrapper}>
 
                             <Image source={{ uri: item.imageUrl }} style={styles.productImage} />
-                            
+
                         </View>
 
                         <View style={styles.productInfo}>
@@ -127,7 +146,9 @@ export default function DashboardScreen() {
                                 </TouchableOpacity>
                             </View>
                         </View>
-                    </View>
+
+                        {/* CAMBIO 2: CIERRE DE TARJETA */}
+                    </TouchableOpacity>
                 )}
             />
 
