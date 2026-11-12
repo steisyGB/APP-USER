@@ -1,12 +1,26 @@
+
 import { useCreateProduct } from "@/app/src/Products/viewmodels/use-create-product";
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import Drawer from "expo-router/drawer";
-import { ActivityIndicator, FlatList, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  FlatList,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CreateProductScreen() {
   const router = useRouter();
+
   const {
     name,
     setName,
@@ -32,24 +46,42 @@ export default function CreateProductScreen() {
     isCategoriesShowModal,
     setIsCategoriesShowModal,
     selectedCategoryName,
-    setSelectedCategoryName
+    setSelectedCategoryName,
 
-  } = useCreateProduct()
+    // VALIDACIONES
+    fieldErrors,
+    handleFieldChange,
+    handleCategoryChange
+
+  } = useCreateProduct();
 
   return (
     <SafeAreaView style={styles.container}>
       <Drawer.Screen options={{ headerShown: false }} />
+
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={{ flex: 1 }}
       >
         <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.replace("/(protected)/dashboard")} >
-            <Ionicons name="arrow-back-outline" size={26} />
+          <TouchableOpacity
+            onPress={() =>
+              router.replace("/(protected)/dashboard")
+            }
+          >
+            <Ionicons
+              name="arrow-back-outline"
+              size={26}
+            />
           </TouchableOpacity>
+
           <View style={styles.titleWrapper}>
-            <Text style={styles.headerTitle}> ADMIN PORTAL</Text>
-            <Text style={styles.headerSubtitle}> Nuevo Producto</Text>
+            <Text style={styles.headerTitle}>
+              {" ADMIN PORTAL"}
+            </Text>
+            <Text style={styles.headerSubtitle}>
+              {" Nuevo Producto"}
+            </Text>
           </View>
         </View>
 
@@ -62,39 +94,83 @@ export default function CreateProductScreen() {
                 color="#006C47"
                 style={{ marginRight: 10 }}
               />
-              <Text style={styles.cardTitle}>Informacion General</Text>
+              <Text style={styles.cardTitle}>
+                Informacion General
+              </Text>
             </View>
 
+            {/* NOMBRE DEL PRODUCTO */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>
                 Nombre del producto
               </Text>
               <TextInput
                 placeholder="Ej. Zapato Nike"
-                style={styles.textInput}
+                style={[
+                  styles.textInput,
+                  fieldErrors.name
+                    ? styles.inputError
+                    : null
+                ]}
                 value={name}
-                onChangeText={setName}
+                onChangeText={(value) =>
+                  handleFieldChange("name", value)
+                }
               />
+
+              {fieldErrors.name ? (
+                <Text style={styles.errorText}>
+                  {fieldErrors.name}
+                </Text>
+              ) : null}
             </View>
 
+            {/* CATEGORÍA */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Categoria</Text>
+              <Text style={styles.inputLabel}>
+                Categoria
+              </Text>
               <TouchableOpacity
-                style={styles.selectorInput}
-                onPress={() => setIsCategoriesShowModal(true)}
-
+                style={[
+                  styles.selectorInput,
+                  fieldErrors.categoryId
+                    ? styles.inputError
+                    : null
+                ]}
+                onPress={() =>
+                  setIsCategoriesShowModal(true)
+                }
               >
-                <Text>{selectedCategoryName || "Selecciona la categoria"}</Text>
+                <Text>
+                  {selectedCategoryName ||
+                    "Selecciona la categoria"}
+                </Text>
                 <Feather
                   name="chevron-down"
                   size={20}
                 />
               </TouchableOpacity>
+
+              {fieldErrors.categoryId ? (
+                <Text style={styles.errorText}>
+                  {fieldErrors.categoryId}
+                </Text>
+              ) : null}
             </View>
 
+            {/* SKU */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>SKU / Codigo de Barra</Text>
-              <View style={styles.inputWithIcon}>
+              <Text style={styles.inputLabel}>
+                SKU / Codigo de Barra
+              </Text>
+              <View
+                style={[
+                  styles.inputWithIcon,
+                  fieldErrors.sku
+                    ? styles.inputError
+                    : null
+                ]}
+              >
                 <MaterialCommunityIcons
                   name="barcode-scan"
                   size={20}
@@ -104,13 +180,24 @@ export default function CreateProductScreen() {
                   placeholder="PR-787878"
                   style={styles.textInputScan}
                   value={sku}
-                  onChangeText={setSku}
+                  onChangeText={(value) =>
+                    handleFieldChange("sku", value)
+                  }
                 />
               </View>
+
+              {fieldErrors.sku ? (
+                <Text style={styles.errorText}>
+                  {fieldErrors.sku}
+                </Text>
+              ) : null}
             </View>
 
+            {/* DESCRIPCIÓN */}
             <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Descripcion Detallada</Text>
+              <Text style={styles.inputLabel}>
+                Descripcion Detallada
+              </Text>
               <TextInput
                 placeholder="Describe los atributos principales, materiales, confeccion"
                 multiline
@@ -123,13 +210,11 @@ export default function CreateProductScreen() {
               />
             </View>
 
-            <View style={styles.charCounterDescription} >
+            <View style={styles.charCounterDescription}>
               <Text>
-
                 {description.length}/2000
               </Text>
             </View>
-
           </View>
 
           {/* PRECIOS E INVENTARIO */}
@@ -141,147 +226,287 @@ export default function CreateProductScreen() {
                 color="#006C47"
                 style={{ marginRight: 10 }}
               />
-              <Text style={styles.cardTitle}>Precios e Inventario</Text>
+              <Text style={styles.cardTitle}>
+                Precios e Inventario
+              </Text>
             </View>
+
             <View>
               <View style={styles.rowCols}>
+                {/* PRECIO REGULAR */}
                 <View style={styles.col}>
-                  <Text style={styles.inputLabel}>Precio Regular</Text>
-                  <View style={styles.inputPriceWrapper}>
-                    <Text style={{ marginRight: 6 }}>$</Text>
+                  <Text style={styles.inputLabel}>
+                    Precio Regular
+                  </Text>
+                  <View
+                    style={[
+                      styles.inputPriceWrapper,
+                      fieldErrors.regularPrice
+                        ? styles.inputError
+                        : null
+                    ]}
+                  >
+                    <Text style={{ marginRight: 6 }}>
+                      $
+                    </Text>
 
                     <TextInput
                       placeholder="0.0"
                       keyboardType="numeric"
                       style={styles.priceInput}
                       value={regularPrice}
-                      onChangeText={setRegularPrice}
+                      onChangeText={(value) =>
+                        handleFieldChange(
+                          "regularPrice",
+                          value
+                        )
+                      }
                     />
                   </View>
+
+                  {fieldErrors.regularPrice ? (
+                    <Text style={styles.errorText}>
+                      {fieldErrors.regularPrice}
+                    </Text>
+                  ) : null}
                 </View>
 
+                {/* PRECIO OFERTA */}
                 <View style={styles.col}>
-                  <Text style={styles.inputLabel}>Precio Oferta</Text>
-                  <View style={styles.inputPriceWrapper}>
-                    <Text style={{ marginRight: 6 }}>$</Text>
+                  <Text style={styles.inputLabel}>
+                    Precio Oferta
+                  </Text>
+                  <View
+                    style={[
+                      styles.inputPriceWrapper,
+                      fieldErrors.offerPrice
+                        ? styles.inputError
+                        : null
+                    ]}
+                  >
+                    <Text style={{ marginRight: 6 }}>
+                      $
+                    </Text>
 
                     <TextInput
                       placeholder="0.0"
                       keyboardType="numeric"
                       style={styles.priceInput}
                       value={offerPrice}
-                      onChangeText={setOfferPrice}
+                      onChangeText={(value) =>
+                        handleFieldChange(
+                          "offerPrice",
+                          value
+                        )
+                      }
                     />
                   </View>
+
+                  {fieldErrors.offerPrice ? (
+                    <Text style={styles.errorText}>
+                      {fieldErrors.offerPrice}
+                    </Text>
+                  ) : null}
                 </View>
               </View>
 
               <View style={styles.rowCols}>
+                {/* STOCK INICIAL */}
                 <View style={styles.col}>
-                  <Text style={styles.inputLabel}>Stock Inicial</Text>
-                  <View style={styles.inputPriceWrapper}>
-                    <Text style={{ marginRight: 6 }}>$</Text>
+                  <Text style={styles.inputLabel}>
+                    Stock Inicial
+                  </Text>
+                  <View
+                    style={[
+                      styles.inputPriceWrapper,
+                      fieldErrors.initialStock
+                        ? styles.inputError
+                        : null
+                    ]}
+                  >
+                    <Text style={{ marginRight: 6 }}>
+                      $
+                    </Text>
 
                     <TextInput
                       placeholder="50"
                       keyboardType="numeric"
                       style={styles.priceInput}
                       value={initialStock}
-                      onChangeText={setInitialStock}
+                      onChangeText={(value) =>
+                        handleFieldChange(
+                          "initialStock",
+                          value
+                        )
+                      }
                     />
                   </View>
+
+                  {fieldErrors.initialStock ? (
+                    <Text style={styles.errorText}>
+                      {fieldErrors.initialStock}
+                    </Text>
+                  ) : null}
                 </View>
 
-
-
+                {/* STOCK MÍNIMO */}
                 <View style={styles.col}>
-                  <Text style={styles.inputLabel}>Stock Mínimo</Text>
-                  <View style={styles.inputPriceWrapper}>
-                    <Text style={{ marginRight: 6 }}>$</Text>
+                  <Text style={styles.inputLabel}>
+                    Stock Mínimo
+                  </Text>
+                  <View
+                    style={[
+                      styles.inputPriceWrapper,
+                      fieldErrors.minStockAlert
+                        ? styles.inputError
+                        : null
+                    ]}
+                  >
+                    <Text style={{ marginRight: 6 }}>
+                      $
+                    </Text>
 
                     <TextInput
                       placeholder="5"
                       keyboardType="numeric"
                       style={styles.priceInput}
                       value={minStockAlert}
-                      onChangeText={setMinStockAlert}
+                      onChangeText={(value) =>
+                        handleFieldChange(
+                          "minStockAlert",
+                          value
+                        )
+                      }
                     />
                   </View>
+
+                  {fieldErrors.minStockAlert ? (
+                    <Text style={styles.errorText}>
+                      {fieldErrors.minStockAlert}
+                    </Text>
+                  ) : null}
                 </View>
-
-
               </View>
 
+              {/* MENSAJE GENERAL DE VALIDACIÓN */}
+              {errorMessage ? (
+                <Text style={styles.generalErrorText}>
+                  {errorMessage}
+                </Text>
+              ) : null}
+
+              {/* BOTÓN ORIGINAL */}
               <TouchableOpacity
                 style={styles.btnSave}
                 onPress={submitProduct}
                 disabled={isLoadingProduct}
               >
                 {isLoadingProduct ? (
-                  <ActivityIndicator color="#FFF" size="small" />
+                  <ActivityIndicator
+                    color="#FFF"
+                    size="small"
+                  />
                 ) : (
                   <>
-                    <Ionicons style={styles.checkIcon} name="checkmark-outline" size={22} color="#FFF" />
-                    <Text style={styles.btnSaveText}>Guardar Producto</Text>
+                    <Ionicons
+                      style={styles.checkIcon}
+                      name="checkmark-outline"
+                      size={22}
+                      color="#FFF"
+                    />
+                    <Text style={styles.btnSaveText}>
+                      Guardar Producto
+                    </Text>
                   </>
                 )}
               </TouchableOpacity>
-
-
             </View>
           </View>
         </ScrollView>
-
       </KeyboardAvoidingView>
 
+      {/* MODAL ORIGINAL DE CATEGORÍAS */}
       <Modal
         visible={isCategoriesShowModal}
         transparent
         animationType="slide"
-        onRequestClose={() => setIsCategoriesShowModal(false)}
+        onRequestClose={() =>
+          setIsCategoriesShowModal(false)
+        }
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text>Seleccionar Categoria</Text>
               <TouchableOpacity
-                onPress={() => setIsCategoriesShowModal(false)}
+                onPress={() =>
+                  setIsCategoriesShowModal(false)
+                }
               >
-                <Feather name="x" size={22} color="#374151" />
+                <Feather
+                  name="x"
+                  size={22}
+                  color="#374151"
+                />
               </TouchableOpacity>
             </View>
+
             {isLoadingCategories ? (
-              <ActivityIndicator size="large" color="#006C47" />
+              <ActivityIndicator
+                size="large"
+                color="#006C47"
+              />
             ) : (
               <FlatList
                 data={categories}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item) =>
+                  item.id.toString()
+                }
                 renderItem={({ item }) => {
-                  const isSelected = item.id === categoryId;
+                  const isSelected =
+                    item.id === categoryId;
+
                   return (
                     <TouchableOpacity
-                      style={[styles.categoryOption, isSelected && styles.categoryOptionSelected]}
+                      style={[
+                        styles.categoryOption,
+                        isSelected &&
+                          styles.categoryOptionSelected
+                      ]}
                       onPress={() => {
-                        setCategoryId(item.id)
-                        setSelectedCategoryName(item.name)
-                        setIsCategoriesShowModal(false)
+                        handleCategoryChange(
+                          item.id,
+                          item.name
+                        );
                       }}
                     >
-                      <Text style={[styles.categoryOptionText, isSelected && styles.categoryOptionTextSelected]}>{item.name}</Text>
-                      {isSelected && <Feather name="check" size={18} color="#006C47" />}
+                      <Text
+                        style={[
+                          styles.categoryOptionText,
+                          isSelected &&
+                            styles.categoryOptionTextSelected
+                        ]}
+                      >
+                        {item.name}
+                      </Text>
+
+                      {isSelected && (
+                        <Feather
+                          name="check"
+                          size={18}
+                          color="#006C47"
+                        />
+                      )}
                     </TouchableOpacity>
-                  )
+                  );
                 }}
               />
             )}
           </View>
         </View>
       </Modal>
-
     </SafeAreaView>
-
-
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -376,7 +601,6 @@ const styles = StyleSheet.create({
   textInputScan: {
     flex: 1,
     padding: 0
-
   },
   textAreaInput: {
     height: 120,
@@ -480,6 +704,22 @@ const styles = StyleSheet.create({
   categoryOptionTextSelected: {
     color: "#006C47",
     fontWeight: "600"
-  }
+  },
 
+  // ÚNICOS ESTILOS AGREGADOS PARA VALIDACIÓN
+  inputError: {
+    borderColor: "#DC2626"
+  },
+  errorText: {
+    color: "#DC2626",
+    fontSize: 12,
+    marginTop: 5,
+    marginBottom: 5
+  },
+  generalErrorText: {
+    color: "#DC2626",
+    fontSize: 13,
+    textAlign: "center",
+    marginTop: 12
+  }
 });

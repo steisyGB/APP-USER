@@ -9,6 +9,8 @@ export const AuthService = {
                 password
             })
 
+            console.log("Respuesta:", response.data);
+
             return response.data
         } catch (error: any) {
             if (axios.isAxiosError(error) && error.response) {
@@ -36,6 +38,8 @@ export const AuthService = {
                 password
             })
 
+            // MOSTRAR RESPUESTA DEL SERVIDOR
+            console.log("RESPUESTA:", response.data);
             return response.data
 
         } catch (error: any) {
@@ -95,6 +99,7 @@ export const AuthService = {
                     "Content-Type": "multipart/form-data"
                 }
             })
+            console.log("Respuesta:", response.data);
             return response.data
         } catch (error: any) {
             console.log(error);
